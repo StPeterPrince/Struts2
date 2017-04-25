@@ -1,0 +1,345 @@
+第1章Struts2_day01
+今日任务
+	使用Struts2完成登录功能
+教学导航
+教学目标	
+教学方法	案例驱动法
+案例一:使用Struts2完成登录功能.
+1.1	案例需求
+1.1.1	需求概述
+CRM系统中需要有登录的功能：
+本功能要实现用户的登录，页面如下：
+ 
+
+1.1.2	需求分析
+	Crm系统使用struts2架构实现web层，web层实现的功能是控制逻辑和视图。
+	整体调用流程如下：
+	1、用户请求至struts2
+	2、struts2调用service
+	3、service调用dao
+	4、dao持久化数据
+
+1.2	相关知识点
+1.2.1	Struts2框架的概述
+1.2.1.1	什么是Struts2
+ 
+
+Struts2是一个基于MVC设计模式的WEB层框架。
+1.2.1.2	Struts2和Struts1区别:
+Struts2和Struts1没有任何联系.Struts2内核是webwork的内核.
+1.2.1.3	WEB层的框架都会基于前端控制器的模式:
+ 
+1.2.2	Struts2快速入门：
+1.2.2.1	下载Struts2的开发包:
+官网: https://struts.apache.org/
+1.2.2.2	解压Struts2的开发包：
+ 
+* apps	:Struts2提供一些案例
+* docs	:Struts2开发文档.
+* lib	:Struts2的开发的jar包
+* src	:Struts2的源码
+1.2.2.3	创建一个web工程引入相应jar包：
+D:\struts2\struts-2.3.24\apps\struts2-blank\WEB-INF\lib\*.jar
+1.2.2.4	创建一个页面:放置一个链接.
+<h1>Struts2的入门案例</h1>
+<a href="${pageContext.request.contextPath }/strutsDemo1.action">访问Struts2的Action.</a>
+1.2.2.5	编写一个Action:
+public class StrutsDemo1 {
+
+	/**
+	 * 提供一个默认的执行的方法:execute
+	 */
+	public String execute(){
+		System.out.println("StrutsDemo1中的execute执行了...");
+		return null;
+	}
+}
+1.2.2.6	完成Action的配置:
+在src下引入一个struts.xml
+
+<struts>
+	<!-- 配置一个包:package -->
+	<package name="demo1" extends="struts-default" namespace="/">
+		<!-- 配置Action -->
+		<action name="strutsDemo1" class="cn.itcast.struts2.action.StrutsDemo1">
+			
+		</action>
+	</package>
+</struts>
+1.2.2.7	配置核心过滤器:
+  <!-- 配置Struts2的核心过滤器：前端控制器 -->
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+  	<filter-name>struts2</filter-name>
+  	<url-pattern>/*</url-pattern>
+  </filter-mapping>
+1.2.2.8	修改Action，将方法设置一个返回值:
+public class StrutsDemo1 {
+
+	/**
+	 * 提供一个默认的执行的方法:execute
+	 */
+	public String execute(){
+		System.out.println("StrutsDemo1中的execute执行了...");
+		return "success";
+	}
+}
+1.2.2.9	修改struts.xml
+<struts>
+	<!-- 配置一个包:package -->
+	<package name="demo1" extends="struts-default" namespace="/">
+		<!-- 配置Action -->
+		<action name="strutsDemo1" class="cn.itcast.struts2.action.StrutsDemo1">
+			<!-- 配置结果页面的跳转 -->
+			<result name="success">/demo1/demo2.jsp</result>
+		</action>
+	</package>
+</struts>
+1.2.3	Struts2开发流程分析
+1.2.3.1	Struts2的执行流程:
+从客户端发送请求过来 先经过前端控制器（核心过滤器StrutsPrepareAndExecuteFilter）过滤器中执行一组拦截器（一组拦截器 就会完成部分功能代码）执行目标Action，在Action中返回一个结果视图,根据Result的配置进行页面的跳转.
+ 
+
+1.2.3.2	配置struts.xml中的提示(在不联网情况下)
+DTD存放的路径:src\core\src\main\resources\struts-2.3.dtd
+Window--->Preferences--->在左侧搜索xml catalog--->add添加.
+* 选择URI
+* 文件系统 选择dtd路径
+
+ 
+
+1.2.4	Struts2的常见配置
+1.2.4.1	Struts2的配置文件的加载顺序:
+查看StrutsPrepareAndExecuteFilter:(核心过滤器)两个功能 ：预处理 和 执行 
+在预处理功能中 init 方法中会有加载配置文件的代码:
+dispatcher.init();
+            init_DefaultProperties(); // [1]					---- 加载org.apache.struts.default.properties.配置的是struts2的所有常量.
+            init_TraditionalXmlConfigurations(); // [2]		---- 加载struts-default.xml、struts-plugin.xml、struts.xml
+            init_LegacyStrutsProperties(); // [3]				---- 加载用户自定义struts.properties
+            init_CustomConfigurationProviders(); // [5]		---- 加载Struts2定义Bean.
+            init_FilterInitParameters() ; // [6]				---- 加载web.xml
+            init_AliasStandardObjects() ; // [7]				---- 用户自定义Bean
+
+结论:
+* default.properties
+* struts-default.xml
+* struts-plugin.xml
+* struts.xml				---- 配置Action以及常量.(******)
+* struts.properties		---- 配置常量
+* web.xml				---- 配置核心过滤器及常量.
+
+***** 后配置的常量 会 覆盖先配置的常量.
+1.2.4.2	Action的配置:
+<package>的配置:
+* package:包. 不是java中说那个包. Struts2中的包 管理<action>.
+* 属性:
+* name		:包名.包名是唯一的不能重复的.
+* extends	:继承.继承struts-default.（struts-default包中定义结果类型和拦截器.）
+* namespace	:名称空间.与<action>标签中的name属性共同决定Action的访问路径.
+* 写法:
+* namespace有名称:	namespace=”/aa”
+* namespace只是一个/:	 namespance=”/”
+* namespace默认的:	namespace没写.
+    
+* abstract	:抽象的.用于使其他的包可以继承的.
+* <package name="struts-default" abstract="true"> . 所以可以继承struts-default.
+
+<action>的配置:
+* action:配置Action类的访问路径.
+* 属性:
+* name	:名称.与<package>中的namespace属性共同决定访问路径.
+* class	:类的全路径.要执行的Action类的全路径.
+* method	:方法.用来指定Action中执行那个方法的方法名.(默认的值execute)
+
+<result>的配置:
+* result:配置Action执行后的页面跳转.
+* 属性:
+* name	:逻辑视图名称.（不是真实的视图，为真实的视图起了一个别名,在Action中返回这个字符串的别名,从而找到具体页面.）
+* type	:跳转的类型.
+1.2.4.3	默认的Action和Action的默认处理类:
+默认的Action:
+<!-- 配置默认的Action:Action的访问路径不存在的时候,执行一个默认的Action -->
+<default-action-ref name="strutsDemo1"/>
+
+
+Action的默认处理类：
+<!-- Action的默认处理类:Action的访问路径配置正确了，但是没有配置class属性. -->
+<default-class-ref class="com.opensymphony.xwork2.ActionSupport"/>
+
+1.2.4.4	Struts2常量的配置:
+修改常量:
+* struts.xml中修改常量（推荐使用）
+	<!-- 修改Struts2的常量的值 -->
+	<constant name="struts.action.extension" value="abc"/>
+
+* struts.properties修改常量
+	struts.action.extension=xxx
+
+* web.xml中修改常量
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+  	<init-param>
+  		<param-name>struts.action.extension</param-name>
+  		<param-value>xyz</param-value>
+  	</init-param>
+  </filter>
+
+1.2.4.5	分模块开发的时候
+<include file="cn/itcast/struts2/demo1/struts_demo1.xml"/>  整合其他的struts的配置文件.
+1.2.5	Struts2的Action的访问:
+1.2.5.1	Action的编写的方式:
+【Action的是一个POJO的类】
+Action是简单的Java对象没有实现任何借口 和 继承任何类.
+public class ActionDemo1 {
+
+	public String execute(){
+		System.out.println("ActionDemo1执行了...");
+		return null;
+	}
+}
+【Action类实现一个Action的接口】
+public class ActionDemo2 implements Action{
+
+	@Override
+	public String execute() throws Exception {
+		System.out.println("ActionDemo2执行了...");
+		return null;
+	}
+
+}
+
+Action接口中提供了5个已经定义好的视图名称:
+    * SUCCESS		:success，代表成功.
+    * NONE			:none，代表页面不跳转
+    * ERROR			:error，代表跳转到错误页面.
+    * INPUT			:input，数据校验的时候跳转的路径.
+    * LOGIN			:login，用来跳转到登录页面.
+【Action类继承ActionSupport类】
+public class ActionDemo3 extends ActionSupport{
+
+	@Override
+	public String execute() throws Exception {
+		System.out.println("ActionDemo3执行了...");
+		return NONE;
+	}
+}
+
+ActionSupport中提供了一些功能，比如数据校验，比如国际化… 如果Action继承了ActionSupport，那么Action就会有这些功能.
+1.2.5.2	Action的访问:
+Action的访问不是难题，因为之前已经访问过了，但是出现一个问题一次请求现在对应一个Action，那么如果请求很多对应很多个Action.现在要处理的问题就是要让一个模块的操作提交到一个Action中。
+【解决Action的访问的问题的方式一：通过配置method属性完成】
+页面：
+<h3>客户的管理</h3>
+<a href="${ pageContext.request.contextPath }/saveCustomerAction.action">添加客户</a> <br/>
+<a href="${ pageContext.request.contextPath }/updateCustomerAction.action">修改客户</a> <br/>
+<a href="${ pageContext.request.contextPath }/deleteCustomerAction.action">删除客户</a> <br/>
+<a href="${ pageContext.request.contextPath }/findCustomerAction.action">查询客户</a> <br/>
+
+
+编写Action:
+public class CustomerAction extends ActionSupport{
+
+	public String save(){
+		System.out.println("CustomerAction中save方法执行了...");
+		return NONE;
+	}
+	public String update(){
+		System.out.println("CustomerAction中update方法执行了...");
+		return NONE;
+	}
+	public String delete(){
+		System.out.println("CustomerAction中delete方法执行了...");
+		return NONE;
+	}
+	public String find(){
+		System.out.println("CustomerAction中find方法执行了...");
+		return NONE;
+	}
+}
+
+配置Action:
+	<package name="demo3" extends="struts-default" namespace="/">
+		<action name="saveCustomerAction" class="cn.itcast.struts2.demo3.CustomerAction" method="save"></action>
+		<action name="updateCustomerAction" class="cn.itcast.struts2.demo3.CustomerAction" method="update"></action>
+		<action name="deleteCustomerAction" class="cn.itcast.struts2.demo3.CustomerAction" method="delete"></action>
+		<action name="findCustomerAction" class="cn.itcast.struts2.demo3.CustomerAction" method="find"></action>
+	
+	</package>
+
+【解决Action的访问的问题的方式二：通过通配符的配置完成】
+第一种解决方案不是很优秀，因为在Action的配置中配置多条.能不能一个Class类只对应一个配置?
+
+页面:
+<h3>联系人的管理</h3>
+<a href="${ pageContext.request.contextPath }/linkman_save.action">添加联系人</a> <br/>
+<a href="${ pageContext.request.contextPath }/linkman_update.action">修改联系人</a> <br/>
+<a href="${ pageContext.request.contextPath }/linkman_delete.action">删除联系人</a> <br/>
+<a href="${ pageContext.request.contextPath }/linkman_find.action">查询联系人</a> <br/>
+
+编写Action:
+public class LinkManAction extends ActionSupport{
+
+	public String save(){
+		System.out.println("保存联系人...");
+		return NONE;
+	}
+	public String update(){
+		System.out.println("修改联系人...");
+		return NONE;
+	}
+	public String delete(){
+		System.out.println("删除联系人...");
+		return NONE;
+	}
+	public String find(){
+		System.out.println("查询联系人...");
+		return NONE;
+	}
+}
+
+配置Action:
+	<!-- 通配符的配置 -->
+	<action name="linkman_*" class="cn.itcast.struts2.demo3.LinkManAction" method="{1}"></action>
+
+【解决Action的访问的问题的方式三：动态方法访问】
+开启一个常量:动态方法访问.
+<constant name="struts.enable.DynamicMethodInvocation" value="true"></constant>
+
+编写Action:
+public class UserAction extends ActionSupport{
+
+	public String save(){
+		System.out.println("保存用户...");
+		return NONE;
+	}
+	public String update(){
+		System.out.println("修改用户...");
+		return NONE;
+	}
+	public String delete(){
+		System.out.println("删除用户...");
+		return NONE;
+	}
+	public String find(){
+		System.out.println("查询用户...");
+		return NONE;
+	}
+}
+
+配置Action:
+<!-- 动态方法访问的配置 -->
+<action name="userAction" class="cn.itcast.struts2.demo3.UserAction"></action>
+
+页面路径写法:
+<h3>用户的管理</h3>
+<a href="${ pageContext.request.contextPath }/userAction!save.action">添加用户</a> <br/>
+<a href="${ pageContext.request.contextPath }/userAction!update.action">修改用户</a> <br/>
+<a href="${ pageContext.request.contextPath }/userAction!delete.action">删除用户</a> <br/>
+<a href="${ pageContext.request.contextPath }/userAction!find.action">查询用户</a> <br/>
+
+
